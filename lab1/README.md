@@ -171,7 +171,7 @@ Since `y` is uncertain, we don't know which will printed after we executed this 
 
 But we are sure that the value is a 4 bytes next to `3` in a higher address on the stack, here is a example by using gdb:
 
-![GDB stack](./stack.png)
+![GDB stack](./screenshots/stack.png)
 
 > Let's say that GCC changed its calling convention so that it pushed arguments on the stack in declaration order, so that the last argument is pushed last. How would you have to change cprintf or its interface so that it would still be possible to pass it a variable number of arguments?
 
