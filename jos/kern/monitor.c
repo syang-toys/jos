@@ -10,6 +10,7 @@
 #include <kern/console.h>
 #include <kern/monitor.h>
 #include <kern/kdebug.h>
+#include <kern/trap.h>
 #include <kern/pmap.h>
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
@@ -260,6 +261,8 @@ monitor(struct Trapframe *tf)
 	cprintf("%Cs %Cs %Cs %Cs %Cs %Cs!\n",2, "Welcome", 8, "to", 11, "the", 4, "JOS", 15, "kernel", 6, "monitor");
 	cprintf("Type 'help' for a list of commands.\n");
 
+	if (tf != NULL)
+		print_trapframe(tf);
 
 	while (1) {
 		buf = readline("K> ");
