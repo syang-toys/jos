@@ -28,8 +28,10 @@ static struct Command commands[] = {
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{ "backtrace", "Display backtrace about the kernel", mon_backtrace },
   { "showmappings", "Display information about physical page mappings", mon_showmappings },
-  { "setpermissions", "Set, clear, or change the permissions of any mapping", mon_setpermissions},
-  { "dumpmemory", "Dump the memory by given virtual or physical address", mon_dumpmemory},
+  { "setpermissions", "Set, clear, or change the permissions of any mapping", mon_setpermissions },
+  { "dumpmemory", "Dump the memory by given virtual or physical address", mon_dumpmemory },
+  { "step", "step into", mon_step },
+  { "continue", "continue exec", mon_continue },	
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -209,6 +211,26 @@ int mon_dumpmemory(int argc, char **argv, struct Trapframe *tf)
   return 0;
 }
 
+/* lab3 step and continue */
+
+int mon_step(int argc, char **argv, struct Trapframe *tf)
+{
+		if (tf == NULL || !(tf->tf_trapno == T_BRKPT || tf->tf_trapno == T_DEBUG)) {
+      	return 0;
+		}   
+  	tf->tf_eflags |= FL_TF;
+		cprintf("eip at\t%08x\n", tf->tf_eip);
+    return 0;
+}
+
+int mon_continue(int argc, char **argv, struct Trapframe *tf)
+{
+	 	if (tf == NULL || !(tf->tf_trapno == T_BRKPT || tf->tf_trapno == T_DEBUG)) {
+        return 0;   
+	 	}
+    tf->tf_eflags &= ~FL_TF;
+		return 0;
+}
 /***** Kernel monitor command interpreter *****/
 
 #define WHITESPACE "\t\r\n "

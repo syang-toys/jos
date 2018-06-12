@@ -4,6 +4,7 @@
 #include <inc/memlayout.h>
 #include <inc/trap.h>
 
+#include <kern/picirq.h>
 
 
 ###################################################################
@@ -20,6 +21,7 @@
  *   void NAME();
  * where NAME is the argument passed to TRAPHANDLER.
  */
+
 #define TRAPHANDLER(name, num)						\
 	.globl name;		/* define global symbol for 'name' */	\
 	.type name, @function;	/* symbol type is function */		\
@@ -41,31 +43,49 @@
 	pushl $(num);							\
 	jmp _alltraps
 
+#define TRAPHANDLER_SUPER(name, num, ec, perm)						\
+.text;                                          \
+	.globl name;		/* define global symbol for 'name' */	\
+	.type name, @function;	/* symbol type is function */		\
+	.align 2;		/* align function definition */		\
+	name:			/* function starts here */		\
+    .if ec == 0;                              \
+        pushl $0;                           \
+    .endif;                                \
+	pushl $(num);							\
+	jmp _alltraps;                          \
+.data;                                       \
+    .long num, name, perm
+.data 
+    .globl trapEntry
+    trapEntry:
+
 .text
 
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
-	TRAPHANDLER_NOEC(t_divide, T_DIVIDE)
-	TRAPHANDLER_NOEC(t_debug, T_DEBUG)
-	TRAPHANDLER_NOEC(t_nmi, T_NMI)
-	TRAPHANDLER_NOEC(t_brkpt, T_BRKPT)
-	TRAPHANDLER_NOEC(t_oflow, T_OFLOW)
-	TRAPHANDLER_NOEC(t_bound, T_BOUND)
-	TRAPHANDLER_NOEC(t_illop, T_ILLOP)
-	TRAPHANDLER_NOEC(t_device, T_DEVICE)
-	TRAPHANDLER(t_dblflt, T_DBLFLT)
-	TRAPHANDLER(t_tss, T_TSS)
-	TRAPHANDLER(t_segnp, T_SEGNP)
-	TRAPHANDLER(t_stack, T_STACK)
-	TRAPHANDLER(t_gpflt, T_GPFLT)
-	TRAPHANDLER(t_pgflt, T_PGFLT)
-	TRAPHANDLER_NOEC(t_fperr, T_FPERR)
-	TRAPHANDLER(t_align, T_ALIGN)
-	TRAPHANDLER_NOEC(t_mchk, T_MCHK)
-	TRAPHANDLER_NOEC(t_simderr, T_SIMDERR)
-	TRAPHANDLER_NOEC(t_syscall, T_SYSCALL)
-
+	TRAPHANDLER_SUPER(t_divide, T_DIVIDE, 0, 0);
+	TRAPHANDLER_SUPER(t_debug, T_DEBUG, 0, 0);
+	TRAPHANDLER_SUPER(t_nmi, T_NMI, 0, 0);
+	TRAPHANDLER_SUPER(t_brkpt, T_BRKPT, 0, 3);
+	TRAPHANDLER_SUPER(t_oflow, T_OFLOW, 0 ,0);
+	TRAPHANDLER_SUPER(t_bound, T_BOUND, 0 ,0);
+	TRAPHANDLER_SUPER(t_illop, T_ILLOP, 0 ,0);
+	TRAPHANDLER_SUPER(t_device, T_DEVICE, 0 ,0);
+	TRAPHANDLER_SUPER(t_dblflt, T_DBLFLT, 1, 0);
+	TRAPHANDLER_SUPER(t_tss, T_TSS, 1, 0);
+	TRAPHANDLER_SUPER(t_segnp, T_SEGNP, 1, 0);
+	TRAPHANDLER_SUPER(t_stack, T_STACK, 1, 0);
+	TRAPHANDLER_SUPER(t_gpflt, T_GPFLT, 1, 0);
+	TRAPHANDLER_SUPER(t_pgflt, T_PGFLT, 1, 0);
+	TRAPHANDLER_SUPER(t_fperr, T_FPERR, 0, 0);
+	TRAPHANDLER_SUPER(t_align, T_ALIGN, 1, 0);
+	TRAPHANDLER_SUPER(t_mchk, T_MCHK, 0, 0);
+	TRAPHANDLER_SUPER(t_simderr, T_SIMDERR, 0, 0);
+	TRAPHANDLER_SUPER(t_syscall, T_SYSCALL, 0 ,3);
+.data
+	.long 0, 0, 0
 
 /*
  * Lab 3: Your code here for _alltraps
@@ -74,7 +94,7 @@ _alltraps:
 	pushl %ds
     pushl %es
     pushal
-    movl $GD_KD, %ax
+    movw $GD_KD, %ax
     movw %ax, %ds
     movw %ax, %es
     pushl %esp
